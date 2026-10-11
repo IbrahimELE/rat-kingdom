@@ -1,0 +1,57 @@
+{
+  "id": "rat-kingdom",
+  "package_id": "urn:uuid:893491f2-d554-47a3-86d9-72a640337f8f",
+  "name": "Rat Kingdom",
+  "version": "0.2.0",
+  "description": "Pomozi Pipu odbraniti pacovsko kraljevstvo i spasiti Mrvicu u humorističnoj tower defense igri.",
+  "author": "IbrahimELE",
+  "license": "Proprietary",
+  "homepage": "https://github.com/IbrahimELE/MobiusRabbit",
+  "entry": "index.jsx",
+  "icon": "icon.png",
+  "offline_capable": false,
+  "permissions": {},
+  "source_files": [],
+  "static_assets": {
+    "index.html": "game/index.html",
+    "index.js": "game/index.js",
+    "index.wasm": "game/index.wasm",
+    "index.pck": "game/index.pck",
+    "index.audio.worklet.js": "game/index.audio.worklet.js",
+    "index.png": "game/index.png",
+    "index.icon.png": "game/index.icon.png",
+    "index.apple-touch-icon.png": "game/index.apple-touch-icon.png",
+    "mobius_boot.js": "game/mobius_boot.js"
+  },
+  "store": {
+    "tagline": "Odbrani pacovsko kraljevstvo. Spasi Mrvicu.",
+    "description": "Pip, mali pacov s velikim planom, brani svoj dom od buba, pasa, deratizatora i mačje mafije. Gradi i nadograđuj neobične tornjeve, koristi Pipove sposobnosti i osvajaj sir kroz 15 misija u pet poglavlja. Između bitaka prati animirane stripove, istražuj Pacopediju i nakon priče iskušaj beskonačnu kanalizaciju.\n\nIgra je na B/H/S jeziku. Za igranje preporučujemo računar s tastaturom i mišem; izdanje nije posebno prilagođeno telefonu. Napredak se čuva u tvojoj Möbius aplikaciji.",
+    "screenshots": [
+      {
+        "src": "static/store/1-park.png",
+        "alt": "Bitka u gradskom parku: tornjevi-likovi, guska i čarobnjaci protiv pasa i buba.",
+        "label": "Brani se likovima"
+      },
+      {
+        "src": "static/store/2-finale.png",
+        "alt": "Finale u penthouseu: Grof Mačković i Mrvica kao heroina na mapi.",
+        "label": "Sruši Grofa"
+      },
+      {
+        "src": "static/store/3-kuhinja.png",
+        "alt": "Restoranska kuhinja: Influenserka, Baka s metlom i deratizatori na stazi.",
+        "label": "Pet slojeva grada"
+      },
+      {
+        "src": "static/store/4-kraljevstvo.png",
+        "alt": "Pacovsko kraljevstvo s izgrađenim prostorijama i izborom misija.",
+        "label": "Sagradi kraljevstvo"
+      },
+      {
+        "src": "static/store/5-strip.png",
+        "alt": "Animirani strip: Pip sklapa savez s Ljutom guskom.",
+        "label": "Priča u stripovima"
+      }
+    ]
+  }
+}
