@@ -1,3 +1,20 @@
+// The Store preserves every app file separately and rejects very large ones, so
+// the engine and game pack ship gzip-compressed (index.wasm.gz, index.pck.gz).
+// Godot still asks for index.wasm / index.pck; inflate them here, in the stream.
+const nativeFetch = window.fetch.bind(window)
+window.fetch = (input, init) => {
+  const url = new URL(typeof input === 'string' ? input : input.url, location.href)
+  const packed = url.pathname.match(/index\.(wasm|pck)$/)
+  if (!packed) return nativeFetch(input, init)
+  url.pathname += '.gz'
+  return nativeFetch(url.href, init).then((response) => {
+    if (!response.ok || !response.body) return response
+    const type = packed[1] === 'wasm' ? 'application/wasm' : 'application/octet-stream'
+    const body = response.body.pipeThrough(new DecompressionStream('gzip'))
+    return new Response(body, { status: 200, headers: { 'Content-Type': type } })
+  })
+}
+
 // The parent owns durable saves; the sandboxed Godot frame cannot use IndexedDB.
 let resolveBoot
 window.__ratKingdomReady = new Promise((resolve) => { resolveBoot = resolve })

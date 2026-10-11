@@ -82,7 +82,7 @@ export default function App({ appId }) {
   }, [load.state])
 
   const retry = () => setLoad((current) => ({ state: 'loading', attempt: current.attempt + 1 }))
-  const src = `/app-embeds/by-id/${appId}/index.html?v=737783ce21bd`
+  const src = `/app-embeds/by-id/${appId}/index.html?v=ee377ed72383`
   return <div className="rk-app" ref={container}>
     <style>{CSS}</style>
     {load.state === 'ready' ? <iframe key={load.attempt} ref={frame} title="Rat Kingdom" src={src}

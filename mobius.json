@@ -15,8 +15,8 @@
   "static_assets": {
     "index.html": "game/index.html",
     "index.js": "game/index.js",
-    "index.wasm": "game/index.wasm",
-    "index.pck": "game/index.pck",
+    "index.wasm.gz": "game/index.wasm.gz",
+    "index.pck.gz": "game/index.pck.gz",
     "index.audio.worklet.js": "game/index.audio.worklet.js",
     "index.png": "game/index.png",
     "index.icon.png": "game/index.icon.png",
