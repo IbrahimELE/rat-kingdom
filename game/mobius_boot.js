@@ -10,10 +10,23 @@ window.fetch = (input, init) => {
   return nativeFetch(url.href, init).then((response) => {
     if (!response.ok || !response.body) return response
     const type = packed[1] === 'wasm' ? 'application/wasm' : 'application/octet-stream'
+    if (typeof DecompressionStream !== 'function') {
+      throw new Error('Ovaj preglednik je prestar za igru (nema DecompressionStream).')
+    }
     const body = response.body.pipeThrough(new DecompressionStream('gzip'))
     return new Response(body, { status: 200, headers: { 'Content-Type': type } })
   })
 }
+
+// A failure behind the parent's loading cover would otherwise look like an
+// endless "Pripremamo…": report it so the parent can show it and offer retry.
+function reportFailure(reason) {
+  if (window.__ratKingdomStarted) return
+  const message = String((reason && reason.message) || reason || 'Nepoznata greška.')
+  window.parent.postMessage({ type: 'rat-kingdom:failed', message }, '*')
+}
+window.addEventListener('error', (event) => reportFailure(event.error || event.message))
+window.addEventListener('unhandledrejection', (event) => reportFailure(event.reason))
 
 // The parent owns durable saves; the sandboxed Godot frame cannot use IndexedDB.
 let resolveBoot

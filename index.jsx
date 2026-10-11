@@ -22,6 +22,10 @@ export default function App({ appId }) {
   const [playing, setPlaying] = useState(false)
   const [saveError, setSaveError] = useState(false)
   const [frameSize, setFrameSize] = useState({ width: 1280, height: 720 })
+  // Visible loading: download share from Godot, then a failure reason if the game stops.
+  const [progress, setProgress] = useState(0)
+  const [failure, setFailure] = useState('')
+  const started = useRef(false)
 
   useEffect(() => {
     const resize = () => {
@@ -41,6 +45,9 @@ export default function App({ appId }) {
     let active = true
     setPlaying(false)
     setSaveError(false)
+    setProgress(0)
+    setFailure('')
+    started.current = false
     window.mobius.storage.get('save.json').then((value) => {
       if (!active) return
       saved.current = value
@@ -55,13 +62,32 @@ export default function App({ appId }) {
 
   useEffect(() => {
     if (load.state !== 'ready') return
-    const timeout = setTimeout(() => setLoad((current) => ({ ...current, state: 'error' })), 90000)
+    // Slow networks keep sending progress; only a silent minute counts as stuck.
+    let timeout
+    const fail = (reason, details) => {
+      clearTimeout(timeout)
+      window.mobius.signal('error', { source: 'game', message: reason, ...details })
+      setFailure(reason)
+      setLoad((current) => ({ ...current, state: 'error' }))
+    }
+    const armTimeout = (seen) => {
+      clearTimeout(timeout)
+      timeout = setTimeout(() => fail('Igra se predugo učitava.', { progress: seen }), 60000)
+    }
+    armTimeout(0)
     const onMessage = (event) => {
       if (event.source !== frame.current?.contentWindow || event.origin !== 'null') return
       if (event.data?.type === 'rat-kingdom:boot-request') {
         frame.current.contentWindow.postMessage({ type: 'rat-kingdom:boot', save: saved.current }, '*')
+      } else if (event.data?.type === 'rat-kingdom:progress') {
+        const share = event.data.total > 0 ? Math.min(1, event.data.current / event.data.total) : 0
+        setProgress(share)
+        armTimeout(share)
+      } else if (event.data?.type === 'rat-kingdom:failed' && !started.current) {
+        fail(String(event.data.message || 'Nepoznata greška.').slice(0, 300), {})
       } else if (event.data?.type === 'rat-kingdom:ready') {
         clearTimeout(timeout)
+        started.current = true
         setPlaying(true)
         window.mobius.signal('app_ready')
       } else if (event.data?.type === 'rat-kingdom:save' && event.data.save && typeof event.data.save === 'object') {
@@ -82,7 +108,7 @@ export default function App({ appId }) {
   }, [load.state])
 
   const retry = () => setLoad((current) => ({ state: 'loading', attempt: current.attempt + 1 }))
-  const src = `/app-embeds/by-id/${appId}/index.html?v=ee377ed72383`
+  const src = `/app-embeds/by-id/${appId}/index.html?v=557b7b659a1c`
   return <div className="rk-app" ref={container}>
     <style>{CSS}</style>
     {load.state === 'ready' ? <iframe key={load.attempt} ref={frame} title="Rat Kingdom" src={src}
@@ -91,7 +117,10 @@ export default function App({ appId }) {
     {!playing ? <div className="rk-cover" role="status"><div className="rk-card">
       <img src={`/app-assets/by-id/${appId}/index.icon.png`} alt="" />
       <h1>Rat Kingdom</h1>
-      <p>{load.state === 'error' ? 'Igra se nije uspjela učitati bez rizika za tvoj napredak.' : 'Pripremamo tvoje kraljevstvo…'}</p>
+      <p>{load.state === 'error'
+        ? (failure ? `Igra se nije pokrenula: ${failure}` : 'Igra se nije uspjela učitati bez rizika za tvoj napredak.')
+        : progress > 0 && progress < 1 ? `Pripremamo tvoje kraljevstvo… ${Math.round(progress * 100)}%`
+        : progress >= 1 ? 'Kraljevstvo se budi…' : 'Pripremamo tvoje kraljevstvo…'}</p>
       {load.state === 'error' ? <button type="button" onClick={retry}>Pokušaj ponovo</button> : null}
     </div></div> : null}
     {saveError ? <div className="rk-save-warning" role="alert">Napredak nije snimljen. Provjeri vezu i pokušaj ponovo prije zatvaranja igre.</div> : null}

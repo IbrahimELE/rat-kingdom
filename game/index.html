@@ -95,15 +95,15 @@ body {
 			<div id="status-notice"></div>
 		</div>
 
-		<script src="index.js?v=ee377ed72383"></script>
-<script src="mobius_boot.js?v=ee377ed72383"></script>
+		<script src="index.js?v=557b7b659a1c"></script>
+<script src="mobius_boot.js?v=557b7b659a1c"></script>
 		<script>
 const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":13424288,"index.wasm":35376909},"focusCanvas":true,"gdextensionLibs":[]};
 const GODOT_THREADS_ENABLED = false;
 // The opaque Möbius frame cannot open IndexedDB; saves use the parent bridge.
 GODOT_CONFIG.persistentPaths = [];
-GODOT_CONFIG.mainPack = "index.pck?v=ee377ed72383";
-GODOT_CONFIG.fileSizes["index.pck?v=ee377ed72383"] = GODOT_CONFIG.fileSizes["index.pck"];
+GODOT_CONFIG.mainPack = "index.pck?v=557b7b659a1c";
+GODOT_CONFIG.fileSizes["index.pck?v=557b7b659a1c"] = GODOT_CONFIG.fileSizes["index.pck"];
 const engine = new Engine(GODOT_CONFIG);
 const startGame = engine.startGame.bind(engine);
 engine.startGame = (options) => window.__ratKingdomReady.then(() => startGame(options));
@@ -144,6 +144,7 @@ engine.startGame = (options) => window.__ratKingdomReady.then(() => startGame(op
 
 	function displayFailureNotice(err) {
 		console.error(err);
+		window.parent.postMessage({ type: 'rat-kingdom:failed', message: String((err && err.message) || err) }, '*');
 		if (err instanceof Error) {
 			setStatusNotice(err.message);
 		} else if (typeof err === 'string') {
@@ -187,6 +188,7 @@ engine.startGame = (options) => window.__ratKingdomReady.then(() => startGame(op
 		setStatusMode('progress');
 		engine.startGame({
 			'onProgress': function (current, total) {
+				window.parent.postMessage({ type: 'rat-kingdom:progress', current, total }, '*');
 				if (current > 0 && total > 0) {
 					statusProgress.value = current;
 					statusProgress.max = total;
@@ -197,6 +199,7 @@ engine.startGame = (options) => window.__ratKingdomReady.then(() => startGame(op
 			},
 		}).then(() => {
 			setStatusMode('hidden');
+			window.__ratKingdomStarted = true;
 			window.parent.postMessage({ type: 'rat-kingdom:ready' }, '*');
 		}, displayFailureNotice);
 	}
