@@ -669,7 +669,7 @@ const Engine = (function () {
 	Engine.load = function (basePath, size) {
 		if (loadPromise == null) {
 			loadPath = basePath;
-			loadPromise = preloader.loadPromise(`${loadPath}.wasm?v=2965a3b96800`, size, true);
+			loadPromise = preloader.loadPromise(`${loadPath}.wasm?v=b819af5e3b5a`, size, true);
 			requestAnimationFrame(preloader.animateProgress);
 		}
 		return loadPromise;

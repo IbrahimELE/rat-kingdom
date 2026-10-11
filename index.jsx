@@ -4,8 +4,8 @@ import React, { useEffect, useRef, useState } from 'react'
 // WebAssembly; the nested packaged-file frame does not on every Möbius.
 // Packaged files are public under /app-assets, so the engine loads them from
 // there and saves go straight to Möbius app storage.
-const BUILD = '2965a3b96800'
-const GODOT_CONFIG = {"args": [], "canvasResizePolicy": 2, "ensureCrossOriginIsolationHeaders": true, "executable": "index", "experimentalVK": false, "fileSizes": {"index.pck": 13424288, "index.wasm": 35376909}, "focusCanvas": true, "gdextensionLibs": []}
+const BUILD = 'b819af5e3b5a'
+const GODOT_CONFIG = {"args": [], "canvasResizePolicy": 2, "ensureCrossOriginIsolationHeaders": true, "executable": "index", "experimentalVK": false, "fileSizes": {"index.pck": 13424480, "index.wasm": 35376909}, "focusCanvas": true, "gdextensionLibs": []}
 
 const CSS = `
 .rk-app { position: fixed; inset: 0; overflow: hidden; background: #221712; color: var(--text); font-family: var(--font); }
@@ -44,6 +44,22 @@ function installInflatingFetch() {
       return new Response(body, { status: 200, headers: { 'Content-Type': type } })
     })
   }
+}
+
+// Godot renders at window size × devicePixelRatio. A big pane on a high-DPI
+// screen can mean 3–4× the pixels of the 1280×720 game, which stutters in
+// the browser. Cap the drawn resolution; CSS stretches the canvas to fit.
+const MAX_RENDER = { width: 1600, height: 900 }
+function capRenderResolution() {
+  const real = window.devicePixelRatio || 1
+  Object.defineProperty(window, 'devicePixelRatio', {
+    configurable: true,
+    get() {
+      const w = Math.max(1, window.innerWidth)
+      const h = Math.max(1, window.innerHeight)
+      return Math.min(real, MAX_RENDER.width / w, MAX_RENDER.height / h)
+    },
+  })
 }
 
 function loadScript(src) {
@@ -92,6 +108,7 @@ export default function App({ appId }) {
     window.addEventListener('keydown', unlockAudio, true)
 
     installInflatingFetch()
+    capRenderResolution()
     window.mobius.storage.get('save.json').then(async (saved) => {
       window.__ratKingdomBridge = {
         load() {
