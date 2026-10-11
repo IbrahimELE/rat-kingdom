@@ -25,7 +25,8 @@
   },
   "store": {
     "tagline": "Odbrani pacovsko kraljevstvo. Spasi Mrvicu.",
-    "description": "Pip, mali pacov s velikim planom, brani svoj dom od buba, pasa, deratizatora i mačje mafije. Gradi i nadograđuj neobične tornjeve, koristi Pipove sposobnosti i osvajaj sir kroz 15 misija u pet poglavlja. Između bitaka prati animirane stripove, istražuj Pacopediju i nakon priče iskušaj beskonačnu kanalizaciju.\n\nIgra je na B/H/S jeziku. Za igranje preporučujemo računar s tastaturom i mišem; izdanje nije posebno prilagođeno telefonu. Napredak se čuva u tvojoj Möbius aplikaciji.",
+    "description": "Pip, mali pacov s velikim planom, brani svoj dom od buba, pasa, deratizatora i mačje mafije. Gradi i nadograđuj neobične tornjeve, koristi Pipove sposobnosti i osvajaj sir kroz 15 misija u pet poglavlja. Između bitaka prati animirane stripove, istražuj Pacopediju i nakon priče iskušaj beskonačnu kanalizaciju.\n \nZa igranje preporučujemo računar s tastaturom i mišem; izdanje nije posebno prilagođeno telefonu. Napredak se čuva u tvojoj Möbius aplikaciji.",
+    "hero": "static/store/hero.png",
     "screenshots": [
       {
         "src": "static/store/1-park.png",
