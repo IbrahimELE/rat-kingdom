@@ -64,7 +64,11 @@ export default function App({ appId }) {
     if (load.state !== 'ready') return
     // Slow networks keep sending progress; only a silent minute counts as stuck.
     let timeout
+    // Everything below guards startup only: once the game reported ready it
+    // owns the frame, and late messages (Godot keeps animating its progress
+    // bar for a while) must never time out or replace a running game.
     const fail = (reason, details) => {
+      if (started.current) return
       clearTimeout(timeout)
       window.mobius.signal('error', { source: 'game', message: reason, ...details })
       setFailure(reason)
@@ -79,7 +83,7 @@ export default function App({ appId }) {
       if (event.source !== frame.current?.contentWindow || event.origin !== 'null') return
       if (event.data?.type === 'rat-kingdom:boot-request') {
         frame.current.contentWindow.postMessage({ type: 'rat-kingdom:boot', save: saved.current }, '*')
-      } else if (event.data?.type === 'rat-kingdom:progress') {
+      } else if (event.data?.type === 'rat-kingdom:progress' && !started.current) {
         const share = event.data.total > 0 ? Math.min(1, event.data.current / event.data.total) : 0
         setProgress(share)
         armTimeout(share)

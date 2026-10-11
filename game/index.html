@@ -188,7 +188,7 @@ engine.startGame = (options) => window.__ratKingdomReady.then(() => startGame(op
 		setStatusMode('progress');
 		engine.startGame({
 			'onProgress': function (current, total) {
-				window.parent.postMessage({ type: 'rat-kingdom:progress', current, total }, '*');
+				if (!window.__ratKingdomStarted) window.parent.postMessage({ type: 'rat-kingdom:progress', current, total }, '*');
 				if (current > 0 && total > 0) {
 					statusProgress.value = current;
 					statusProgress.max = total;
