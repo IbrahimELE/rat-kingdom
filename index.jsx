@@ -25,6 +25,7 @@ export default function App({ appId }) {
   // Visible loading: download share from Godot, then a failure reason if the game stops.
   const [progress, setProgress] = useState(0)
   const [failure, setFailure] = useState('')
+  const [slow, setSlow] = useState(false)
   const started = useRef(false)
 
   useEffect(() => {
@@ -47,6 +48,7 @@ export default function App({ appId }) {
     setSaveError(false)
     setProgress(0)
     setFailure('')
+    setSlow(false)
     started.current = false
     window.mobius.storage.get('save.json').then((value) => {
       if (!active) return
@@ -62,8 +64,11 @@ export default function App({ appId }) {
 
   useEffect(() => {
     if (load.state !== 'ready') return
-    // Slow networks keep sending progress; only a silent minute counts as stuck.
+    // Time alone never ends a load: a hidden tab or pane pauses Godot's progress
+    // reports while it keeps loading. A quiet minute only offers a retry; real
+    // failures come from the game itself ("rat-kingdom:failed").
     let timeout
+    let reportedSlow = false
     // Everything below guards startup only: once the game reported ready it
     // owns the frame, and late messages (Godot keeps animating its progress
     // bar for a while) must never time out or replace a running game.
@@ -76,7 +81,15 @@ export default function App({ appId }) {
     }
     const armTimeout = (seen) => {
       clearTimeout(timeout)
-      timeout = setTimeout(() => fail('Igra se predugo učitava.', { progress: seen }), 60000)
+      setSlow(false)
+      timeout = setTimeout(() => {
+        if (started.current) return
+        setSlow(true)
+        if (!reportedSlow) {
+          reportedSlow = true
+          window.mobius.signal('error', { source: 'slow_load', progress: seen, hidden: document.hidden })
+        }
+      }, 60000)
     }
     armTimeout(0)
     const onMessage = (event) => {
@@ -92,6 +105,7 @@ export default function App({ appId }) {
       } else if (event.data?.type === 'rat-kingdom:ready') {
         clearTimeout(timeout)
         started.current = true
+        setSlow(false)
         setPlaying(true)
         window.mobius.signal('app_ready')
       } else if (event.data?.type === 'rat-kingdom:save' && event.data.save && typeof event.data.save === 'object') {
@@ -123,9 +137,10 @@ export default function App({ appId }) {
       <h1>Rat Kingdom</h1>
       <p>{load.state === 'error'
         ? (failure ? `Igra se nije pokrenula: ${failure}` : 'Igra se nije uspjela učitati bez rizika za tvoj napredak.')
+        : slow ? 'Učitavanje traje duže nego obično… Igra će se pokrenuti čim bude spremna.'
         : progress > 0 && progress < 1 ? `Pripremamo tvoje kraljevstvo… ${Math.round(progress * 100)}%`
         : progress >= 1 ? 'Kraljevstvo se budi…' : 'Pripremamo tvoje kraljevstvo…'}</p>
-      {load.state === 'error' ? <button type="button" onClick={retry}>Pokušaj ponovo</button> : null}
+      {load.state === 'error' || slow ? <button type="button" onClick={retry}>Pokušaj ponovo</button> : null}
     </div></div> : null}
     {saveError ? <div className="rk-save-warning" role="alert">Napredak nije snimljen. Provjeri vezu i pokušaj ponovo prije zatvaranja igre.</div> : null}
   </div>
