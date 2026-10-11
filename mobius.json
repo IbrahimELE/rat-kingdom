@@ -2,7 +2,7 @@
   "id": "rat-kingdom",
   "package_id": "urn:uuid:893491f2-d554-47a3-86d9-72a640337f8f",
   "name": "Rat Kingdom",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "Pomozi Pipu odbraniti pacovsko kraljevstvo i spasiti Mrvicu u humorističnoj tower defense igri.",
   "author": "IbrahimELE",
   "license": "Proprietary",
@@ -13,15 +13,13 @@
   "permissions": {},
   "source_files": [],
   "static_assets": {
-    "index.html": "game/index.html",
     "index.js": "game/index.js",
     "index.wasm.gz": "game/index.wasm.gz",
     "index.pck.gz": "game/index.pck.gz",
     "index.audio.worklet.js": "game/index.audio.worklet.js",
     "index.png": "game/index.png",
     "index.icon.png": "game/index.icon.png",
-    "index.apple-touch-icon.png": "game/index.apple-touch-icon.png",
-    "mobius_boot.js": "game/mobius_boot.js"
+    "index.apple-touch-icon.png": "game/index.apple-touch-icon.png"
   },
   "store": {
     "tagline": "Odbrani pacovsko kraljevstvo. Spasi Mrvicu.",
