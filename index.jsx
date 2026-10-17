@@ -4,8 +4,8 @@ import React, { useEffect, useRef, useState } from 'react'
 // WebAssembly; the nested packaged-file frame does not on every Möbius.
 // Packaged files are public under /app-assets, so the engine loads them from
 // there and saves go straight to Möbius app storage.
-const BUILD = 'b819af5e3b5a'
-const GODOT_CONFIG = {"args": [], "canvasResizePolicy": 2, "ensureCrossOriginIsolationHeaders": true, "executable": "index", "experimentalVK": false, "fileSizes": {"index.pck": 13424480, "index.wasm": 35376909}, "focusCanvas": true, "gdextensionLibs": []}
+const BUILD = 'b79ba950b6f5'
+const GODOT_CONFIG = {"args": [], "canvasResizePolicy": 2, "ensureCrossOriginIsolationHeaders": true, "executable": "index", "experimentalVK": false, "fileSizes": {"index.pck": 13425280, "index.wasm": 35376909}, "focusCanvas": true, "gdextensionLibs": []}
 
 const CSS = `
 .rk-app { position: fixed; inset: 0; overflow: hidden; background: #221712; color: var(--text); font-family: var(--font); }
@@ -95,14 +95,40 @@ export default function App({ appId }) {
     }
 
     let audioContext = null
-    const syncAudio = () => setAudioPaused(audioContext?.state === 'suspended')
-    window.addEventListener('rat-kingdom:audio-context', () => {
+    let onScreen = true
+    let suspendedForVisibility = false
+    let visibilityAudioWork = Promise.resolve()
+    const visible = () => onScreen && document.visibilityState !== 'hidden'
+    const syncAudio = () => setAudioPaused(visible() && audioContext?.state === 'suspended')
+    const syncVisibility = () => {
+      visibilityAudioWork = visibilityAudioWork.then(async () => {
+        window.__ratKingdomBridge?.setVisible?.(visible())
+        if (!audioContext) return
+        if (!visible() && audioContext.state === 'running') {
+          suspendedForVisibility = true
+          await audioContext.suspend()
+        } else if (visible() && suspendedForVisibility) {
+          suspendedForVisibility = false
+          await audioContext.resume()
+        }
+        syncAudio()
+      }).catch(syncAudio)
+    }
+    const onAudioContext = () => {
       audioContext = window.__ratKingdomAudioContext
-      audioContext.addEventListener('statechange', syncAudio)
-      syncAudio()
-    })
+      audioContext.addEventListener('statechange', syncVisibility)
+      syncVisibility()
+    }
+    window.addEventListener('rat-kingdom:audio-context', onAudioContext)
+    const onFrameVisibility = (event) => {
+      if (event.source !== window.parent || event.data?.type !== 'moebius:frame-visibility') return
+      onScreen = event.data.visible === true
+      syncVisibility()
+    }
+    window.addEventListener('message', onFrameVisibility)
+    document.addEventListener('visibilitychange', syncVisibility)
     const unlockAudio = () => {
-      if (audioContext?.state === 'suspended') audioContext.resume().then(syncAudio).catch(() => {})
+      if (visible() && audioContext?.state === 'suspended') audioContext.resume().then(syncAudio).catch(() => {})
     }
     window.addEventListener('pointerdown', unlockAudio, true)
     window.addEventListener('keydown', unlockAudio, true)
@@ -150,11 +176,21 @@ export default function App({ appId }) {
           if (!window.__ratKingdomStarted && total > 0) setProgress(Math.min(1, current / total))
         },
       })
+      window.__ratKingdomBridge?.setVisible?.(visible())
       window.__ratKingdomStarted = true
       setState('playing')
       canvas.current?.focus()
       window.mobius.signal('app_ready')
     }).catch(fail)
+    return () => {
+      window.removeEventListener('message', onFrameVisibility)
+      document.removeEventListener('visibilitychange', syncVisibility)
+      window.removeEventListener('rat-kingdom:audio-context', onAudioContext)
+      window.removeEventListener('pointerdown', unlockAudio, true)
+      window.removeEventListener('keydown', unlockAudio, true)
+      audioContext?.removeEventListener('statechange', syncVisibility)
+      audioContext?.suspend().catch(() => {})
+    }
   }, [appId])
 
   const retry = () => location.reload()
